@@ -5,48 +5,82 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Tiptap from "./Tiptap";
+import useFetch from "@/hooks/useFetch";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function CreateArticleForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const articleId = searchParams.get("id");
-
+  
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-
+  
   // جلب بيانات المقال لو بنعدل
-  useEffect(() => {
-    if (articleId) {
-      fetch(`/api/articles/${articleId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setTitle(data.title || "Update");
-          setContent(data.content);
-        });
+  
+  const articleId  = searchParams.get("id");
+  
+  const { data, error, loading } = useFetch({ url: `/Article/${articleId}` });
+  
+  useEffect(()=>{
+    if(data){
+      setTitle(data.title);
+      setContent(data.description);
     }
-  }, [articleId]);
+  },[data])
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async () => {
-    const payload = { title, content };
+    try {
+      let response;
+  
+      if (articleId) {
+        console.log("time of update " + content);
+        
+        // ✅ PUT (تحديث مقال)
+        response = await axios.put(`${apiUrl}/Article/${articleId}`, {
+          articleID: articleId,
+          title: title,
+          description:  content
+        }, {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        toast.success("✅ تم تحديث المقالة!");
 
-    if (articleId) {
-      await fetch(`/api/articles/${articleId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      await fetch("/api/articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+  
+      } else {
+        // ✅ POST (إنشاء مقال جديد)
+        response = await axios.post(`${apiUrl}/Article`, {
+          title: title,
+          description: content,
+          userID: 1
+        }, {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        toast.success("✅ تم إنشاء المقالة!");
+        router.push(`/article/edit?id=${response.data.data.articleID}`);
+      }
+  
+      console.log("✅ Success:", response.data);
+
+
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error("❌ Axios Error:", error.response?.data || error.message);
+      } else {
+        toast.error("❌ Unknown Error:", error);
+      }
     }
-
-    router.push("/article");
   };
 
   return (
+    <>
+   
     <form className="space-y-4 bg-white p-6 rounded-xl shadow ">
       <h1 className="text-xl font-bold" dir="rtl">
         {articleId ? "تعديل المقالة" : "إنشاء مقالة جديدة"}
@@ -59,14 +93,17 @@ export default function CreateArticleForm() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
+      
 
       
 
-      <Tiptap value={content} onChange={setContent} />
+      <Tiptap  value={content} onChange={setContent} />
 
       <Button type="button" onClick={handleSubmit}>
         {articleId ? "تحديث" : "إنشاء"}
       </Button>
     </form>
+
+  </>
   );
 }

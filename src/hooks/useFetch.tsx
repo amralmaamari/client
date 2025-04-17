@@ -12,8 +12,8 @@ interface IData{
 
 const useFetch = ({ url }: IUseFetch) => {
   // Use the correct environment variable name
-  const apiUrl = import.meta.env.VITE_API_URL;
-
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
   const [data, setData] = useState<IData | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -28,7 +28,6 @@ const useFetch = ({ url }: IUseFetch) => {
           throw new Error("API URL is not defined");
         }
         const res = await axios.get(`${apiUrl}${url}`);
-        console.log(res.data.data);
         if(res.data.success){
           setData(res.data.data);
           setLoading(false);
@@ -41,6 +40,7 @@ const useFetch = ({ url }: IUseFetch) => {
           setError("An unexpected error occurred");
         }
       }
+
       setLoading(false);
     };
     fetchData();

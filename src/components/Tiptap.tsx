@@ -113,7 +113,7 @@ export default function TiptapEditor({ value, onChange }: TiptapProps) {
         />
       </div>
 
-      <EditorContent editor={editor} />
+      <EditorContent className="leading-relaxed whitespace-pre-line" editor={editor} />
     </div>
   );
 }

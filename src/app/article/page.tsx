@@ -4,23 +4,33 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
+import useFetch from "@/hooks/useFetch";
 
-export default function page() {
+export default function Page() {
+
+    const {
+      data: articles,        // مختصر وواضح
+      error: articlesError,  // لتحديد نوع الخطأ
+      loading: isLoadingArticles // أفضل توصيف للبوول
+    } = useFetch({ url: `/Article/getArticles` });
+
   return (
     <>
       <main className="p-8 bg-gray-50 min-h-screen">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <ArticleCard
-            key={i}
-            id={i}
-            title={`The Art of Writing #${i + 1}`}
-            content={`Writing is not just a skill; it’s an art form that allows individuals to express themselves...
-
-Engaging in writing challenges encourages consistency, creativity, and reflection...
-
-Join us on this journey of self-discovery...`}
+    {isLoadingArticles && <h2>Loading...</h2>}
+    {!isLoadingArticles && articlesError && <h2>{articlesError}</h2>}
+    {!articlesError && articles &&
+    articles.map((article) => (
+      <ArticleCard
+            key={article.articleID}
+            id={article.articleID}
+            title={article.title}
+            content={article.description}
           />
-        ))}
+      
+        ))
+      }
+        
       </main>
 
       <div className="fixed bottom-6 right-6 z-50 ">

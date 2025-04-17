@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useRouter } from "next/navigation"
 import { Label } from "@radix-ui/react-label"
+import useFetch from "@/hooks/useFetch"
 
 interface Article {
   id: number
@@ -15,7 +16,7 @@ interface Article {
 }
 
  interface Measurement {
-  id: number;
+  measurementID: number;
   title: string;
 }
 
@@ -30,7 +31,6 @@ export default function CreateChallengeForm() {
   const [endDate, setEndDate] = useState("")
 
   const [articles, setArticles] = useState<Article[]>([])
-  const [measurement, setMeasurement] = useState<Measurement[]>([])
   const [selectedArticle, setSelectedArticle] = useState<string>("")
   const [selectedMeasurement, setSelectedMeasurement] = useState<string>("")
 
@@ -53,11 +53,13 @@ export default function CreateChallengeForm() {
         .then((data: Article[]) => setArticles(data))
     }, [])
 
-    useEffect(() => {
-      fetch("https://run.mocky.io/v3/137422dd-4c7a-4cf1-b605-39849ca326f2")
-        .then(res => res.json())
-        .then((data: Measurement[]) => setMeasurement(data))
-    }, [])
+    const {
+      data: measurements,        // مختصر وواضح
+      error: measurementsError,  // لتحديد نوع الخطأ
+      loading: isLoadingMeasurements // أفضل توصيف للبوول
+    } = useFetch({ url: `/Measurement/getMeasurements` });
+        
+   
     useEffect(() => {
       setReminderTimes((prev) => {
         const newReminders = [...prev];
@@ -211,12 +213,17 @@ export default function CreateChallengeForm() {
   </SelectTrigger>
   <SelectContent>
     <SelectItem value=" " className="text-gray-500 font-extrabold ">بدون اختيار</SelectItem>
-
-    {measurement.map((measure) => (
-      <SelectItem key={measure.id} value={measure.id.toString()}>
+    {isLoadingMeasurements && <h2>Loading...</h2>}
+    {!isLoadingMeasurements && measurementsError && <h2>{measurementsError}</h2>}
+    {!measurementsError && measurements &&
+    measurements.map((measure:Measurement) => (
+      
+      <SelectItem key={measure.measurementID} value={measure.measurementID.toString()}>
+        
         {measure.title}
       </SelectItem>
-    ))}
+    ))
+  }
   </SelectContent>
 </Select>
 

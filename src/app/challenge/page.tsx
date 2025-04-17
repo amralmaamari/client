@@ -18,6 +18,8 @@ interface Challenge {
 export default function Page() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
 
+
+
   useEffect(() => {
     fetch("https://run.mocky.io/v3/89509a94-d041-4634-8248-77f6a2474d91")
       .then(res => res.json())
